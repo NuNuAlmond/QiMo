@@ -13,24 +13,36 @@ class FeatureExtractor:
         self.gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
 
     # 1. 颜色特征（颜色直方图）
-    def color_histogram(self, color_space="HSV", bins=256):
+    def color_histogram(self, color_space="RGB", bins=256):
         """
-        计算颜色直方图
+        计算颜色直方图（支持 RGB 三通道）
         :param color_space: 'RGB' or 'HSV'
         :param bins: 直方图维度
-        :return: histogram
+        :return:
+            - 若 RGB: (hist_r, hist_g, hist_b) 每个形状为 (bins, 1)
+            - 若 HSV: hist_h 形状为 (bins, 1)（当前仅返回 H 通道）
         """
         if color_space == "RGB":
             img = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+            # 三通道分别统计
+            hist_r = cv2.calcHist([img], [0], None, [bins], [0, 256])
+            hist_g = cv2.calcHist([img], [1], None, [bins], [0, 256])
+            hist_b = cv2.calcHist([img], [2], None, [bins], [0, 256])
+            # 归一化（便于对比与显示）
+            cv2.normalize(hist_r, hist_r)
+            cv2.normalize(hist_g, hist_g)
+            cv2.normalize(hist_b, hist_b)
+
+            return hist_r, hist_g, hist_b
+
         elif color_space == "HSV":
             img = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
+            hist_h = cv2.calcHist([img], [0], None, [bins], [0, 180])
+            cv2.normalize(hist_h, hist_h)
+            return hist_h
+
         else:
             raise ValueError("不支持的颜色空间")
-
-        hist = cv2.calcHist([img], [0], None, [bins], [0, 256])
-        cv2.normalize(hist, hist)
-
-        return hist
 
     # 2. 频域特征
     def fourier_magnitude_spectrum(self, use_log=True):
@@ -144,28 +156,3 @@ class FeatureExtractor:
             None,
             flags=cv2.DrawMatchesFlags_DRAW_RICH_KEYPOINTS
         )
-
-    # 6. 角点特征（Harris）
-    def harris_corners(self, block_size=2, ksize=3, k=0.04, thresh=0.01):
-        """
-        Harris 角点检测
-        :param block_size: 邻域大小
-        :param ksize: Sobel 算子孔径
-        :param k: Harris 参数，一般 0.04~0.06
-        :param thresh: 阈值比例（相对最大响应）
-        :return: corners_img(BGR), corner_count(int), max_response(float)
-        """
-        gray_f = np.float32(self.gray)
-        dst = cv2.cornerHarris(gray_f, block_size, ksize, k) #每个像素的Harris响应值
-        #膨胀增强角点区域
-        dst_dilated = cv2.dilate(dst, None)
-        # 阈值判定
-        threshold_value = thresh * dst_dilated.max()
-        corners_mask = dst_dilated > threshold_value
-        corner_count = int(np.count_nonzero(corners_mask))
-        max_response = float(dst_dilated.max())
-        # 在原图上标记角点
-        corners_img = self.image.copy()
-        corners_img[corners_mask] = [0, 0, 255]  #标红角点（BGR）
-
-        return corners_img, corner_count, max_response

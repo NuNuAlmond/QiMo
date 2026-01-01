@@ -37,12 +37,11 @@ class FeatureGUI(QWidget):
 
         self.feature_box = QComboBox()
         self.feature_box.addItems([
-            "颜色特征（HSV直方图）",
+            "颜色特征（RGB直方图）",
             "边缘特征（Canny）",
             "频域特征（傅里叶幅度谱）",
             "纹理特征（LBP）",
-            "几何特征（ORB关键点）",
-            "角点检测（Harris）",
+            "几何特征（ORB关键点）"
         ])
 
         left_layout = QVBoxLayout() #左侧布局采用竖直排列
@@ -135,19 +134,21 @@ class FeatureGUI(QWidget):
         feature_type = self.feature_box.currentText() #获取当前下拉框的字符串
 
         if "颜色" in feature_type:
-            hist = self.extractor.color_histogram()
-            hist_img = self.hist_to_image(hist)
+            hist_r, hist_g, hist_b = self.extractor.color_histogram(color_space="RGB", bins=256)
+            hist_img = self.rgb_hist_to_image(hist_r, hist_g, hist_b)
             self.show_image(hist_img)
-
-            mean = np.mean(hist)
-            std = np.std(hist)
+            #做一个简单的定量描述，三通道均值与标准差（基于归一化直方图）
+            r_mean, r_std = float(np.mean(hist_r)), float(np.std(hist_r))
+            g_mean, g_std = float(np.mean(hist_g)), float(np.std(hist_g))
+            b_mean, b_std = float(np.mean(hist_b)), float(np.std(hist_b))
 
             self.info_box.setText(
                 "【颜色特征描述】\n"
-                "颜色空间：HSV\n"
-                f"直方图均值：{mean:.4f}\n"
-                f"直方图标准差：{std:.4f}\n"
-                "说明：用于描述图像整体颜色分布情况。"
+                "颜色空间：RGB\n"
+                f"R 直方图：mean={r_mean:.4f}, std={r_std:.4f}\n"
+                f"G 直方图：mean={g_mean:.4f}, std={g_std:.4f}\n"
+                f"B 直方图：mean={b_mean:.4f}, std={b_std:.4f}\n"
+                "说明：RGB 三通道直方图用于描述图像颜色分布与各通道强度差异。"
             )
 
         elif "傅里叶" in feature_type:
@@ -218,21 +219,6 @@ class FeatureGUI(QWidget):
                 "说明：关键点数量反映图像结构复杂程度。"
             )
 
-        elif "Harris" in feature_type:
-            corners_img, corner_count, max_resp = self.extractor.harris_corners(
-                block_size=2, ksize=3, k=0.04, thresh=0.01
-            )
-            self.show_image(corners_img)
-
-            self.info_box.setText(
-                "【角点特征描述】\n"
-                "方法：Harris Corner Detector\n"
-                "参数：block_size=2, ksize=3, k=0.04, thresh=0.01\n"
-                f"角点数量：{corner_count}\n"
-                f"最大响应值：{max_resp:.4f}\n"
-                "说明：角点通常位于结构变化明显的位置，可用于匹配与识别。"
-            )
-
     #工具函数
     def show_image(self, img, gray=False):
         if gray:
@@ -254,6 +240,26 @@ class FeatureGUI(QWidget):
             Qt.SmoothTransformation #缩放更平滑
         )
         self.image_label.setPixmap(pixmap)
+
+    @staticmethod
+    def rgb_hist_to_image(hist_r, hist_g, hist_b, height=300, width=256):
+        """
+        将 RGB 三通道直方图绘制成可显示的图像（BGR 格式）
+        """
+        # 统一归一化到 0-255
+        r = cv2.normalize(hist_r, None, 0, 255, cv2.NORM_MINMAX).ravel()
+        g = cv2.normalize(hist_g, None, 0, 255, cv2.NORM_MINMAX).ravel()
+        b = cv2.normalize(hist_b, None, 0, 255, cv2.NORM_MINMAX).ravel()
+
+        hist_img = np.zeros((height, width, 3), dtype=np.uint8)
+
+        for x in range(width):
+            # OpenCV 画线用 BGR：红线=(0,0,255), 绿线=(0,255,0), 蓝线=(255,0,0)
+            cv2.line(hist_img, (x, height), (x, height - int(r[x])), (0, 0, 255), 1)
+            cv2.line(hist_img, (x, height), (x, height - int(g[x])), (0, 255, 0), 1)
+            cv2.line(hist_img, (x, height), (x, height - int(b[x])), (255, 0, 0), 1)
+
+        return hist_img
 
     @staticmethod
     def hist_to_image(hist): #静态，把直方图画成一张图像
