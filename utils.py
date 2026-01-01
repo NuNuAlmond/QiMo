@@ -1,19 +1,17 @@
 import cv2
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt #导入matplotlib的绘图接口，用于弹出窗口显示图片/曲线
 
-
-def show_image(title, image, is_gray=False):
-    plt.figure(figsize=(6, 6))
-    if is_gray:
+def show_image(title, image, is_gray=False): #在一个窗口中显示图像
+    plt.figure(figsize=(6, 6)) #新建一个绘图窗口figure
+    if is_gray: #如果is_gray=True：按灰度图显示
         plt.imshow(image, cmap='gray')
     else:
         plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     plt.title(title)
-    plt.axis('off')
+    plt.axis('off') #关闭坐标轴刻度和边框
     plt.show()
 
-
-def show_histogram(hist, title="Histogram"):
+def show_histogram(hist, title="Histogram"): #显示直方图/曲线
     plt.figure()
     plt.plot(hist)
     plt.title(title)
