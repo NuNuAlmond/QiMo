@@ -12,10 +12,10 @@ from PyQt5.QtCore import Qt
 
 from feature_extractor import FeatureExtractor
 
-
+#定义一个窗口类，继承QWidget，即一个普通窗口
 class FeatureGUI(QWidget):
     def __init__(self):
-        super().__init__()
+        super().__init__() #调用父类 QWidget 的构造函数
         self.setWindowTitle("图像特征提取系统（Python + OpenCV）")
         self.resize(900, 600)
 
@@ -28,7 +28,7 @@ class FeatureGUI(QWidget):
         self.image_label = None
         self.info_box = None
 
-        self.init_ui()
+        self.init_ui() #把界面搭建过程放进独立函数init_ui()
 
     def init_ui(self):
         # ===== 左侧：按钮和选项 =====
@@ -45,63 +45,58 @@ class FeatureGUI(QWidget):
             "角点检测（Harris）",
         ])
 
-        left_layout = QVBoxLayout()
+        left_layout = QVBoxLayout() #左侧布局采用竖直排列
         left_layout.addWidget(self.btn_load)
         left_layout.addWidget(self.feature_box)
 
-        # ===== Canny 参数组（默认先隐藏）=====
+        #Canny参数组（默认先隐藏）
         self.canny_group = QGroupBox("Canny 参数")
-        canny_layout = QVBoxLayout()
-
-        # low threshold
-        self.spin_canny_low = QSpinBox()
+        canny_layout = QVBoxLayout() #容器内部竖直布局
+        #低阈值
+        self.spin_canny_low = QSpinBox() #只能输入整数
         self.spin_canny_low.setRange(0, 500)
         self.spin_canny_low.setValue(50)
         self.spin_canny_low.setPrefix("low = ")
-
-        # high threshold
+        #高阈值
         self.spin_canny_high = QSpinBox()
         self.spin_canny_high.setRange(0, 500)
         self.spin_canny_high.setValue(150)
         self.spin_canny_high.setPrefix("high = ")
-
-        # blur kernel size (odd)
+        #高斯滤波核大小
         self.spin_canny_blur = QSpinBox()
         self.spin_canny_blur.setRange(1, 31)
-        self.spin_canny_blur.setSingleStep(2)  # 步长 2，天然保持奇数
+        self.spin_canny_blur.setSingleStep(2) #步长2，保持奇数
         self.spin_canny_blur.setValue(5)
         self.spin_canny_blur.setPrefix("blur = ")
-
+        #把3个输入框加入Canny内部布局
         canny_layout.addWidget(self.spin_canny_low)
         canny_layout.addWidget(self.spin_canny_high)
         canny_layout.addWidget(self.spin_canny_blur)
-
+        #把布局装进groupbox
         self.canny_group.setLayout(canny_layout)
-        self.canny_group.setVisible(False)  # 默认隐藏
+        self.canny_group.setVisible(False) #默认隐藏
 
         left_layout.addWidget(self.canny_group)
-
         left_layout.addWidget(self.btn_extract)
-        left_layout.addStretch()
+        left_layout.addStretch() #把上面的控件顶到上方，下面留空
 
         # ===== 右侧：图像显示 =====
         self.image_label = QLabel("请加载一张图像")
-        self.image_label.setAlignment(Qt.AlignCenter)
-        self.image_label.setStyleSheet("border: 1px solid gray")
+        self.image_label.setAlignment(Qt.AlignCenter) #居中
+        self.image_label.setStyleSheet("border: 1px solid gray") #灰色边框
 
         right_layout = QVBoxLayout()
         right_layout.addWidget(self.image_label)
-
-        # 特征描述文本框
+        #特征描述文本框
         self.info_box = QTextEdit()
-        self.info_box.setReadOnly(True)
+        self.info_box.setReadOnly(True) #用户不能编辑
         self.info_box.setFixedHeight(150)
         self.info_box.setText("特征描述信息将在此显示")
 
         right_layout.addWidget(self.info_box)
 
         # ===== 主布局 =====
-        main_layout = QHBoxLayout()
+        main_layout = QHBoxLayout() #整体横向布局
         main_layout.addLayout(left_layout, 2)
         main_layout.addLayout(right_layout, 8)
 
@@ -112,16 +107,14 @@ class FeatureGUI(QWidget):
         self.btn_extract.clicked.connect(self.extract_feature)
         self.feature_box.currentTextChanged.connect(self.on_feature_changed)
 
-    # 只有选择 Canny 时显示参数组
+    # 只有选择Canny时显示参数组
     def on_feature_changed(self, text: str):
         if "Canny" in text or "边缘" in text:
             self.canny_group.setVisible(True)
         else:
             self.canny_group.setVisible(False)
 
-    # =============================
     # 功能函数
-    # =============================
     def load_image(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
@@ -139,7 +132,7 @@ class FeatureGUI(QWidget):
         if self.extractor is None:
             return
 
-        feature_type = self.feature_box.currentText()
+        feature_type = self.feature_box.currentText() #获取当前下拉框的字符串
 
         if "颜色" in feature_type:
             hist = self.extractor.color_histogram()
@@ -173,13 +166,11 @@ class FeatureGUI(QWidget):
             low = int(self.spin_canny_low.value())
             high = int(self.spin_canny_high.value())
             blur = int(self.spin_canny_blur.value())
-
-            # 保证 high > low（防止用户调反）
+            #保证 high>low
             if high <= low:
                 high = low + 1
                 self.spin_canny_high.setValue(high)
-
-            # blur 保持奇数（spin 已经步长 2，但保险一下）
+            #blur保持奇数
             if blur % 2 == 0:
                 blur += 1
                 self.spin_canny_blur.setValue(blur)
@@ -196,7 +187,6 @@ class FeatureGUI(QWidget):
                 f"边缘像素数：{edge_pixels}\n"
                 f"边缘密度（占比）：{density:.4f}\n"
                 "说明：阈值越高，边缘更少更干净；阈值越低，边缘更丰富但可能噪声更多。"
-
             )
 
         elif "纹理" in feature_type:
@@ -217,7 +207,7 @@ class FeatureGUI(QWidget):
             keypoints, descriptors = self.extractor.orb_features()
             kp_img = self.extractor.draw_keypoints(keypoints)
             self.show_image(kp_img)
-
+            #描述子矩阵的列数就是每个描述子的维度，如果没检测到点，descriptors可能为None
             desc_dim = descriptors.shape[1] if descriptors is not None else 0
 
             self.info_box.setText(
@@ -243,9 +233,7 @@ class FeatureGUI(QWidget):
                 "说明：角点通常位于结构变化明显的位置，可用于匹配与识别。"
             )
 
-    # =============================
-    # 工具函数
-    # =============================
+    #工具函数
     def show_image(self, img, gray=False):
         if gray:
             qimg = QImage(
@@ -260,15 +248,15 @@ class FeatureGUI(QWidget):
             )
 
         pixmap = QPixmap.fromImage(qimg)
-        pixmap = pixmap.scaled(
+        pixmap = pixmap.scaled( #按label尺寸缩放，保持宽高比，不拉伸
             self.image_label.size(),
             Qt.KeepAspectRatio,
-            Qt.SmoothTransformation
+            Qt.SmoothTransformation #缩放更平滑
         )
         self.image_label.setPixmap(pixmap)
 
     @staticmethod
-    def hist_to_image(hist):
+    def hist_to_image(hist): #静态，把直方图画成一张图像
         hist = cv2.normalize(hist, None, 0, 255, cv2.NORM_MINMAX)
         hist_img = np.zeros((300, 256, 3), dtype=np.uint8)
 
@@ -282,6 +270,7 @@ class FeatureGUI(QWidget):
             )
         return hist_img
 
+#程序入口
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = FeatureGUI()
