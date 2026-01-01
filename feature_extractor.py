@@ -144,28 +144,3 @@ class FeatureExtractor:
             None,
             flags=cv2.DrawMatchesFlags_DRAW_RICH_KEYPOINTS
         )
-
-    # 6. 角点特征（Harris）
-    def harris_corners(self, block_size=2, ksize=3, k=0.04, thresh=0.01):
-        """
-        Harris 角点检测
-        :param block_size: 邻域大小
-        :param ksize: Sobel 算子孔径
-        :param k: Harris 参数，一般 0.04~0.06
-        :param thresh: 阈值比例（相对最大响应）
-        :return: corners_img(BGR), corner_count(int), max_response(float)
-        """
-        gray_f = np.float32(self.gray)
-        dst = cv2.cornerHarris(gray_f, block_size, ksize, k) #每个像素的Harris响应值
-        #膨胀增强角点区域
-        dst_dilated = cv2.dilate(dst, None)
-        # 阈值判定
-        threshold_value = thresh * dst_dilated.max()
-        corners_mask = dst_dilated > threshold_value
-        corner_count = int(np.count_nonzero(corners_mask))
-        max_response = float(dst_dilated.max())
-        # 在原图上标记角点
-        corners_img = self.image.copy()
-        corners_img[corners_mask] = [0, 0, 255]  #标红角点（BGR）
-
-        return corners_img, corner_count, max_response

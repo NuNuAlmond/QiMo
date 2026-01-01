@@ -41,8 +41,7 @@ class FeatureGUI(QWidget):
             "边缘特征（Canny）",
             "频域特征（傅里叶幅度谱）",
             "纹理特征（LBP）",
-            "几何特征（ORB关键点）",
-            "角点检测（Harris）",
+            "几何特征（ORB关键点）"
         ])
 
         left_layout = QVBoxLayout() #左侧布局采用竖直排列
@@ -216,21 +215,6 @@ class FeatureGUI(QWidget):
                 f"关键点数量：{len(keypoints)}\n"
                 f"描述子维度：{desc_dim}\n"
                 "说明：关键点数量反映图像结构复杂程度。"
-            )
-
-        elif "Harris" in feature_type:
-            corners_img, corner_count, max_resp = self.extractor.harris_corners(
-                block_size=2, ksize=3, k=0.04, thresh=0.01
-            )
-            self.show_image(corners_img)
-
-            self.info_box.setText(
-                "【角点特征描述】\n"
-                "方法：Harris Corner Detector\n"
-                "参数：block_size=2, ksize=3, k=0.04, thresh=0.01\n"
-                f"角点数量：{corner_count}\n"
-                f"最大响应值：{max_resp:.4f}\n"
-                "说明：角点通常位于结构变化明显的位置，可用于匹配与识别。"
             )
 
     #工具函数
