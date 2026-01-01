@@ -12,7 +12,7 @@ class FeatureExtractor:
 
         self.gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
 
-    # 1. 颜色特征（颜色直方图）
+    #1.颜色特征（颜色直方图）
     def color_histogram(self, color_space="RGB", bins=256):
         """
         计算颜色直方图（支持 RGB 三通道）
@@ -44,7 +44,7 @@ class FeatureExtractor:
         else:
             raise ValueError("不支持的颜色空间")
 
-    # 2. 频域特征
+    #2.频域特征
     def fourier_magnitude_spectrum(self, use_log=True):
         """
         计算傅里叶幅度谱（频域特征可视化）
@@ -77,7 +77,7 @@ class FeatureExtractor:
 
         return spectrum_img, ratio
 
-    # 3. 边缘特征（Canny）
+    #3.边缘特征（Canny）
     def canny_edges(self, low_thresh=50, high_thresh=150, blur_ksize=5):
         """
         Canny 边缘检测 + 边缘特征描述
@@ -99,7 +99,7 @@ class FeatureExtractor:
 
         return edges, edge_density, edge_pixels
 
-    # 4. 纹理特征（LBP 简化版）
+    #4.纹理特征（LBP 简化版）
     def lbp_texture(self):
         """
         计算 LBP 纹理特征（简化版）
@@ -135,24 +135,3 @@ class FeatureExtractor:
         hist = hist.astype("float")
         hist /= (hist.sum() + 1e-6) #归一化成概率分布
         return hist
-
-    # 5. 几何特征（ORB）
-    def orb_features(self, max_features=1000):
-        """
-        ORB 特征提取
-        :return: keypoints, descriptors
-        """
-        orb = cv2.ORB_create(nfeatures=max_features)
-        keypoints, descriptors = orb.detectAndCompute(self.gray, None) #检测关键点&计算描述子
-        return keypoints, descriptors
-
-    def draw_keypoints(self, keypoints):
-        """
-        可视化关键点
-        """
-        return cv2.drawKeypoints(
-            self.image,
-            keypoints,
-            None,
-            flags=cv2.DrawMatchesFlags_DRAW_RICH_KEYPOINTS
-        )

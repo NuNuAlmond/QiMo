@@ -40,8 +40,7 @@ class FeatureGUI(QWidget):
             "颜色特征（RGB直方图）",
             "边缘特征（Canny）",
             "频域特征（傅里叶幅度谱）",
-            "纹理特征（LBP）",
-            "几何特征（ORB关键点）"
+            "纹理特征（LBP）"
         ])
 
         left_layout = QVBoxLayout() #左侧布局采用竖直排列
@@ -202,21 +201,6 @@ class FeatureGUI(QWidget):
                 f"直方图维度：{len(hist)}\n"
                 f"最大纹理响应值：{np.max(hist):.4f}\n"
                 "说明：LBP 用于描述图像局部纹理结构特征。"
-            )
-
-        elif "ORB" in feature_type:
-            keypoints, descriptors = self.extractor.orb_features()
-            kp_img = self.extractor.draw_keypoints(keypoints)
-            self.show_image(kp_img)
-            #描述子矩阵的列数就是每个描述子的维度，如果没检测到点，descriptors可能为None
-            desc_dim = descriptors.shape[1] if descriptors is not None else 0
-
-            self.info_box.setText(
-                "【几何特征描述】\n"
-                "特征类型：ORB\n"
-                f"关键点数量：{len(keypoints)}\n"
-                f"描述子维度：{desc_dim}\n"
-                "说明：关键点数量反映图像结构复杂程度。"
             )
 
     #工具函数
