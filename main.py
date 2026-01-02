@@ -16,7 +16,7 @@ from feature_extractor import FeatureExtractor
 class FeatureGUI(QWidget):
     def __init__(self):
         super().__init__() #调用父类 QWidget 的构造函数
-        self.setWindowTitle("图像特征提取系统（Python + OpenCV）")
+        self.setWindowTitle("图像特征提取系统")
         self.resize(900, 600)
 
         self.image_path = None
@@ -39,7 +39,7 @@ class FeatureGUI(QWidget):
         self.feature_box.addItems([
             "颜色特征（RGB直方图）",
             "边缘特征（Canny）",
-            "频域特征（傅里叶幅度谱）",
+            "频域特征（傅里叶变换）",
             "纹理特征（LBP）"
         ])
 
@@ -144,10 +144,10 @@ class FeatureGUI(QWidget):
             self.info_box.setText(
                 "【颜色特征描述】\n"
                 "颜色空间：RGB\n"
-                f"R 直方图：mean={r_mean:.4f}, std={r_std:.4f}\n"
-                f"G 直方图：mean={g_mean:.4f}, std={g_std:.4f}\n"
-                f"B 直方图：mean={b_mean:.4f}, std={b_std:.4f}\n"
-                "说明：RGB 三通道直方图用于描述图像颜色分布与各通道强度差异。"
+                f"R直方图：mean={r_mean:.4f}, std={r_std:.4f}\n"
+                f"G直方图：mean={g_mean:.4f}, std={g_std:.4f}\n"
+                f"B直方图：mean={b_mean:.4f}, std={b_std:.4f}\n"
+                "说明：RGB三通道直方图用于描述图像颜色分布与各通道强度差异。"
             )
 
         elif "傅里叶" in feature_type:
@@ -200,7 +200,7 @@ class FeatureGUI(QWidget):
                 "方法：LBP（局部二值模式）\n"
                 f"直方图维度：{len(hist)}\n"
                 f"最大纹理响应值：{np.max(hist):.4f}\n"
-                "说明：LBP 用于描述图像局部纹理结构特征。"
+                "说明：LBP用于描述图像局部纹理结构特征。"
             )
 
     #工具函数
